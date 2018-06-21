@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">PokuponTest</string>
+    <string name="project_name">Project Name</string>
+    <string name="github_repository">GitHub repository</string>
+    <string name="unknown">Unknown</string>
+    <string name="uUnknown"><u>Unknown</u></string>
+    <string name="more_results">More results</string>
+</resources>
