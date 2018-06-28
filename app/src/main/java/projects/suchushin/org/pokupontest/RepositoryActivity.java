@@ -16,8 +16,6 @@ public class RepositoryActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_repository);
 
-        RecyclerView recyclerView = findViewById(R.id.list_of_repositories);
-        TextView textView = findViewById(R.id.repositories_of_organisation);
         ImageButton button = findViewById(R.id.back_button);
 
         button.setOnClickListener(v -> finish());
@@ -26,6 +24,6 @@ public class RepositoryActivity extends Activity {
         String login = intent.getExtras().getString("LOGIN");
         String name = intent.getExtras().getString("NAME");
 
-        new RepositorySearchAsyncTask(this, recyclerView, textView, login, name).execute();
+        new RepositorySearchAsyncTask(this, login, name).execute();
     }
 }

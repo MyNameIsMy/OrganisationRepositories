@@ -59,15 +59,15 @@ public class OrganisationListAdapter extends RecyclerView.Adapter<OrganisationLi
             blog = itemView.findViewById(R.id.organisation_blog);
         }
 
-        void bindOrganisation(Organization organization){
+        void bindOrganisation(Organization organization) {
             RequestOptions options = new RequestOptions().centerInside();
             Glide.with(context).load(organization.getAvatarUrl()).apply(options).into(icon);
 
-            if (organization.getName() != null)
+            if (organization.getName() != null && !organization.getName().equals("")) {
                 name.setText(organization.getName());
-            if (organization.getLocation() != null)
+            } if (organization.getLocation() != null && !organization.getLocation().equals("")){
                 location.setText(organization.getLocation());
-            if (organization.getBlog() != null) {
+            } if (organization.getBlog() != null && !organization.getBlog().equals("")) {
                 SpannableString content = new SpannableString(organization.getBlog());
                 content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
                 blog.setText(content);

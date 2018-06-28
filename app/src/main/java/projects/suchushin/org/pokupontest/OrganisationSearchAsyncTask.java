@@ -20,17 +20,17 @@ import retrofit2.Response;
 public class OrganisationSearchAsyncTask extends AsyncTask<Void, Void, List<Organization>>{
     private RecyclerView recyclerView;
     private CharSequence charSequence;
-    private Context context;
+    private OrganisationActivity activity;
     private Button moreResults;
     private ProgressBar progressBar;
     private int page;
 
-    OrganisationSearchAsyncTask(Context context, RecyclerView recyclerView, CharSequence charSequence, int page, Button moreResults, ProgressBar progressBar){
-        this.context = context;
-        this.recyclerView = recyclerView;
+    OrganisationSearchAsyncTask(Context context, CharSequence charSequence, int page){
+        this.activity = (OrganisationActivity) context;
+        this.recyclerView = activity.findViewById(R.id.recycler_view);
+        this.moreResults = activity.findViewById(R.id.more_results);
+        this.progressBar = activity.findViewById(R.id.progress_bar);
         this.charSequence = charSequence;
-        this.moreResults = moreResults;
-        this.progressBar = progressBar;
         this.page = page;
     }
 
@@ -42,49 +42,67 @@ public class OrganisationSearchAsyncTask extends AsyncTask<Void, Void, List<Orga
 
         List<Organization> organizations = new ArrayList<>();
 
+        String url;
+
         try {
-            Response<ItemList> response = service.itemList("https://api.github.com/search/users?q=" + charSequence.toString() + "+type:org+in:fullname&per_page=10&page=" + Integer.toString(page)).execute();
+            url = "https://api.github.com/search/users?q=" + charSequence.toString() + "+type:org+in:fullname&per_page=10&page=" + Integer.toString(page);
+
+            Response<ItemList> response = service.itemList(url).execute();
 
             List<Item> items = response.body().getItems();
 
             if (items != null){
                 for (Item item : items){
-                    Response<Organization> r = service.getOrganization("https://api.github.com/users/" + item.getLogin() + "?client_id=" + ClientData.CLIENT_ID + "&client_secret=" + ClientData.CLIENT_SECRET).execute();
+                    url = "https://api.github.com/users/" + item.getLogin() + "?client_id=" + ClientData.CLIENT_ID + "&client_secret=" + ClientData.CLIENT_SECRET;
+
+                    Response<Organization> r = service.getOrganization(url).execute();
+
                     Organization o = r.body();
+
                     organizations.add(o);
                 }
             }
         } catch (IOException e) {
-            Toast.makeText(context, "Download error", Toast.LENGTH_LONG).show();
-            e.printStackTrace();
+            Toast.makeText(activity, "Download error", Toast.LENGTH_LONG).show();
         }
         return organizations;
     }
 
     @Override
     protected void onProgressUpdate(Void... values) {
+        if (page == 1){
+            recyclerView.setAdapter(null);
+        }
+
         moreResults.setVisibility(View.INVISIBLE);
         progressBar.setVisibility(View.VISIBLE);
     }
 
     @Override
     protected void onPostExecute(List<Organization> organizations) {
-        if (recyclerView.getLayoutManager() == null){
-            LinearLayoutManager llm = new LinearLayoutManager(context);
-            llm.setOrientation(LinearLayoutManager.VERTICAL);
-            recyclerView.setLayoutManager(llm);
-        }
+        if (organizations == null || organizations.size() == 0){
+            progressBar.setVisibility(View.INVISIBLE);
+            moreResults.setVisibility(View.INVISIBLE);
 
-        if (page == 1) {
-            RecyclerView.Adapter adapter = new OrganisationListAdapter(context, organizations);
-            recyclerView.setAdapter(adapter);
+            Toast.makeText(activity, "There is not one organisation", Toast.LENGTH_LONG).show();
         } else {
-            OrganisationListAdapter adapter = (OrganisationListAdapter) recyclerView.getAdapter();
-            adapter.addFreshResults(organizations);
-            recyclerView.getAdapter().notifyDataSetChanged();
-        }
+            if (recyclerView.getLayoutManager() == null){
+                LinearLayoutManager llm = new LinearLayoutManager(activity);
+                llm.setOrientation(LinearLayoutManager.VERTICAL);
+                recyclerView.setLayoutManager(llm);
+            }
 
-        progressBar.setVisibility(View.INVISIBLE);
-        moreResults.setVisibility(View.VISIBLE);
+            if (page == 1) {
+                RecyclerView.Adapter adapter = new OrganisationListAdapter(activity, organizations);
+                recyclerView.setAdapter(adapter);
+            } else {
+                OrganisationListAdapter adapter = (OrganisationListAdapter) recyclerView.getAdapter();
+                adapter.addFreshResults(organizations);
+                recyclerView.getAdapter().notifyDataSetChanged();
+            }
+
+            progressBar.setVisibility(View.INVISIBLE);
+            moreResults.setVisibility(View.VISIBLE);
+        }
     }
 }

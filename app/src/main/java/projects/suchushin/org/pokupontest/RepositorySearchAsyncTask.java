@@ -15,16 +15,16 @@ import projects.suchushin.org.pokupontest.requestclasses.Repository;
 import retrofit2.Response;
 
 public class RepositorySearchAsyncTask extends AsyncTask<Void, Void, List<Repository>>{
-    private Context context;
+    private RepositoryActivity activity;
     private RecyclerView recyclerView;
     private TextView textView;
     private String login;
     private String name;
 
-    RepositorySearchAsyncTask(Context context, RecyclerView recyclerView, TextView textView, String login, String name){
-        this.context = context;
-        this.recyclerView = recyclerView;
-        this.textView = textView;
+    RepositorySearchAsyncTask(Context context, String login, String name){
+        this.activity = (RepositoryActivity) context;
+        this.recyclerView = activity.findViewById(R.id.list_of_repositories);
+        this.textView = activity.findViewById(R.id.repositories_of_organisation);
         this.login = login;
         this.name = name;
     }
@@ -52,7 +52,7 @@ public class RepositorySearchAsyncTask extends AsyncTask<Void, Void, List<Reposi
 
             return repositories;
         } catch (IOException e) {
-            Toast.makeText(context, "Download error", Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, "Download error", Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
         return null;
@@ -64,14 +64,13 @@ public class RepositorySearchAsyncTask extends AsyncTask<Void, Void, List<Reposi
             String text = name + " Repositories (" + repositories.size() + ")";
             textView.setText(text);
 
-            LinearLayoutManager llm = new LinearLayoutManager(context);
+            LinearLayoutManager llm = new LinearLayoutManager(activity);
             llm.setOrientation(LinearLayoutManager.VERTICAL);
             recyclerView.setLayoutManager(llm);
 
             RecyclerView.Adapter adapter = new RepositoryListAdapter(repositories);
             recyclerView.setAdapter(adapter);
         } else {
-            RepositoryActivity activity = (RepositoryActivity) context;
             Toast.makeText(activity, "There is not one repository", Toast.LENGTH_LONG).show();
             activity.finish();
         }

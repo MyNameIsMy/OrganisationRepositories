@@ -1,13 +1,16 @@
 package projects.suchushin.org.pokupontest;
 
 import android.app.Activity;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-
 import com.jakewharton.rxbinding2.widget.RxTextView;
 import java.util.concurrent.TimeUnit;
 import retrofit2.Retrofit;
@@ -23,7 +26,6 @@ public class OrganisationActivity extends Activity {
         setContentView(R.layout.activity_organisation);
 
         EditText editText = findViewById(R.id.edit_query);
-        RecyclerView recyclerView = findViewById(R.id.recycler_view);
         Button button = findViewById(R.id.more_results);
         ProgressBar progressBar = findViewById(R.id.progress_bar);
 
@@ -33,7 +35,7 @@ public class OrganisationActivity extends Activity {
         button.setOnClickListener(v -> {
             PAGINATION_HELPER++;
 
-            new OrganisationSearchAsyncTask(this, recyclerView, editText.getText(), PAGINATION_HELPER, button, progressBar).execute();
+            new OrganisationSearchAsyncTask(this, editText.getText(), PAGINATION_HELPER).execute();
         });
 
         Retrofit retrofit = new Retrofit.Builder()
@@ -51,11 +53,15 @@ public class OrganisationActivity extends Activity {
                     if (charSequence.length() > 2){
                         PAGINATION_HELPER = 1;
 
-                        new OrganisationSearchAsyncTask(this, recyclerView, charSequence, PAGINATION_HELPER, button, progressBar).execute();
+                        new OrganisationSearchAsyncTask(this, charSequence, PAGINATION_HELPER).execute();
+
+                        View view = this.getCurrentFocus();
+
+                        if (view != null) {
+                            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                        }
                     }
                 });
     }
-
-
-
 }
