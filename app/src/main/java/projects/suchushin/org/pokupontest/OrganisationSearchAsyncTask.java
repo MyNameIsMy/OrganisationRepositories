@@ -10,6 +10,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import projects.suchushin.org.pokupontest.requestclasses.Item;
@@ -18,18 +19,18 @@ import projects.suchushin.org.pokupontest.requestclasses.Organization;
 import retrofit2.Response;
 
 public class OrganisationSearchAsyncTask extends AsyncTask<Void, Void, List<Organization>>{
-    private RecyclerView recyclerView;
+    private WeakReference<RecyclerView> recyclerView;
+    private WeakReference<OrganisationActivity> activity;
+    private WeakReference<Button> moreResults;
+    private WeakReference<ProgressBar> progressBar;
     private CharSequence charSequence;
-    private OrganisationActivity activity;
-    private Button moreResults;
-    private ProgressBar progressBar;
     private int page;
 
     OrganisationSearchAsyncTask(Context context, CharSequence charSequence, int page){
-        this.activity = (OrganisationActivity) context;
-        this.recyclerView = activity.findViewById(R.id.recycler_view);
-        this.moreResults = activity.findViewById(R.id.more_results);
-        this.progressBar = activity.findViewById(R.id.progress_bar);
+        activity = new WeakReference<>((OrganisationActivity) context);
+        recyclerView = new WeakReference<>(activity.get().findViewById(R.id.recycler_view));
+        moreResults = new WeakReference<>(activity.get().findViewById(R.id.more_results));
+        progressBar = new WeakReference<>(activity.get().findViewById(R.id.progress_bar));
         this.charSequence = charSequence;
         this.page = page;
     }
@@ -63,7 +64,7 @@ public class OrganisationSearchAsyncTask extends AsyncTask<Void, Void, List<Orga
                 }
             }
         } catch (IOException e) {
-            Toast.makeText(activity, "Download error", Toast.LENGTH_LONG).show();
+            Toast.makeText(activity.get(), "Download error", Toast.LENGTH_LONG).show();
         }
         return organizations;
     }
@@ -71,38 +72,38 @@ public class OrganisationSearchAsyncTask extends AsyncTask<Void, Void, List<Orga
     @Override
     protected void onProgressUpdate(Void... values) {
         if (page == 1){
-            recyclerView.setAdapter(null);
+            recyclerView.get().setAdapter(null);
         }
 
-        moreResults.setVisibility(View.INVISIBLE);
-        progressBar.setVisibility(View.VISIBLE);
+        moreResults.get().setVisibility(View.INVISIBLE);
+        progressBar.get().setVisibility(View.VISIBLE);
     }
 
     @Override
     protected void onPostExecute(List<Organization> organizations) {
         if (organizations == null || organizations.size() == 0){
-            progressBar.setVisibility(View.INVISIBLE);
-            moreResults.setVisibility(View.INVISIBLE);
+            progressBar.get().setVisibility(View.INVISIBLE);
+            moreResults.get().setVisibility(View.INVISIBLE);
 
-            Toast.makeText(activity, "There is not one organisation", Toast.LENGTH_LONG).show();
+            Toast.makeText(activity.get(), "There is not one organisation", Toast.LENGTH_LONG).show();
         } else {
-            if (recyclerView.getLayoutManager() == null){
-                LinearLayoutManager llm = new LinearLayoutManager(activity);
+            if (recyclerView.get().getLayoutManager() == null){
+                LinearLayoutManager llm = new LinearLayoutManager(activity.get());
                 llm.setOrientation(LinearLayoutManager.VERTICAL);
-                recyclerView.setLayoutManager(llm);
+                recyclerView.get().setLayoutManager(llm);
             }
 
             if (page == 1) {
-                RecyclerView.Adapter adapter = new OrganisationListAdapter(activity, organizations);
-                recyclerView.setAdapter(adapter);
+                RecyclerView.Adapter adapter = new OrganisationListAdapter(activity.get(), organizations);
+                recyclerView.get().setAdapter(adapter);
             } else {
-                OrganisationListAdapter adapter = (OrganisationListAdapter) recyclerView.getAdapter();
+                OrganisationListAdapter adapter = (OrganisationListAdapter) recyclerView.get().getAdapter();
                 adapter.addFreshResults(organizations);
-                recyclerView.getAdapter().notifyDataSetChanged();
+                recyclerView.get().getAdapter().notifyDataSetChanged();
             }
 
-            progressBar.setVisibility(View.INVISIBLE);
-            moreResults.setVisibility(View.VISIBLE);
+            progressBar.get().setVisibility(View.INVISIBLE);
+            moreResults.get().setVisibility(View.VISIBLE);
         }
     }
 }
