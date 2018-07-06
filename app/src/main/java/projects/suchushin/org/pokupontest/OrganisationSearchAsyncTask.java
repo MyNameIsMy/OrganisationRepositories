@@ -1,9 +1,11 @@
 package projects.suchushin.org.pokupontest;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -24,15 +26,22 @@ public class OrganisationSearchAsyncTask extends AsyncTask<Void, Void, List<Orga
     private WeakReference<Button> moreResults;
     private WeakReference<ProgressBar> progressBar;
     private CharSequence charSequence;
-    private int page;
+    private boolean isVersionHigher;
+    private static int page = 1;
 
-    OrganisationSearchAsyncTask(Context context, CharSequence charSequence, int page){
+    OrganisationSearchAsyncTask(Context context, CharSequence charSequence, boolean isVersionHigher, boolean isNewTask){
         activity = new WeakReference<>((OrganisationActivity) context);
         recyclerView = new WeakReference<>(activity.get().findViewById(R.id.recycler_view));
         moreResults = new WeakReference<>(activity.get().findViewById(R.id.more_results));
         progressBar = new WeakReference<>(activity.get().findViewById(R.id.progress_bar));
+
         this.charSequence = charSequence;
-        this.page = page;
+        this.isVersionHigher = isVersionHigher;
+
+        if (isNewTask)
+            page = 1;
+        else
+            page++;
     }
 
     @Override
@@ -64,7 +73,7 @@ public class OrganisationSearchAsyncTask extends AsyncTask<Void, Void, List<Orga
                 }
             }
         } catch (IOException e) {
-            Toast.makeText(activity.get(), "Download error", Toast.LENGTH_LONG).show();
+            e.printStackTrace();
         }
         return organizations;
     }
@@ -77,8 +86,10 @@ public class OrganisationSearchAsyncTask extends AsyncTask<Void, Void, List<Orga
 
         moreResults.get().setVisibility(View.INVISIBLE);
         progressBar.get().setVisibility(View.VISIBLE);
+
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onPostExecute(List<Organization> organizations) {
         if (organizations == null || organizations.size() == 0){
@@ -103,7 +114,10 @@ public class OrganisationSearchAsyncTask extends AsyncTask<Void, Void, List<Orga
             }
 
             progressBar.get().setVisibility(View.INVISIBLE);
-            moreResults.get().setVisibility(View.VISIBLE);
+            if (!isVersionHigher){
+                moreResults.get().setVisibility(View.VISIBLE);
+            }
         }
+        OrganisationActivity.isOrganisationsSearchExist = false;
     }
 }
